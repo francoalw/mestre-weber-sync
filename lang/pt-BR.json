@@ -1,0 +1,10 @@
+{
+  "MWS.Settings.Url.Name": "URL do mestre-weber",
+  "MWS.Settings.Url.Hint": "Ex.: http://mestre-weber.test",
+  "MWS.Settings.Token.Name": "Token do mestre-weber",
+  "MWS.Settings.Token.Hint": "Gerado nas configurações da campanha, em Integração Foundry VTT.",
+  "MWS.Menu.Mapeamento.Name": "Configuração e mapeamento",
+  "MWS.Menu.Mapeamento.Label": "Configurar",
+  "MWS.Menu.Mapeamento.Hint": "URL, token e o mapeamento de cada personagem do Foundry pro personagem correspondente no mestre-weber.",
+  "MWS.SceneControl.Title": "Mestre Weber — Placar"
+}

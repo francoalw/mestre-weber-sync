@@ -1,0 +1,85 @@
+.mws-config .form-group,
+.mws-hud .form-group {
+    margin-bottom: 8px;
+}
+
+.mws-config .notes,
+.mws-hud .notes {
+    font-size: 0.85em;
+    opacity: 0.8;
+}
+
+.mws-erro {
+    color: #ff6a6a;
+    font-weight: 600;
+}
+
+.mws-atores-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.mws-atores {
+    width: 100%;
+    margin-top: 8px;
+}
+
+.mws-atores td,
+.mws-atores th {
+    padding: 2px 6px;
+    text-align: left;
+}
+
+.mws-hud-toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.mws-hud-toolbar button.mws-gravando {
+    color: #ff4444;
+    font-weight: 700;
+}
+
+.mws-aviso {
+    color: #e0a020;
+    font-size: 0.85em;
+}
+
+.mws-placar {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 8px;
+}
+
+.mws-linha {
+    border: 1px solid var(--color-border-light-tertiary, #782e22);
+    border-radius: 4px;
+    padding: 6px 8px;
+}
+
+.mws-linha h3 {
+    margin: 0 0 4px 0;
+    font-size: 1em;
+    border: none;
+}
+
+.mws-linha dl {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2px 8px;
+    margin: 0;
+    font-size: 0.85em;
+}
+
+.mws-linha dt {
+    opacity: 0.8;
+}
+
+.mws-linha dd {
+    margin: 0;
+    text-align: right;
+    font-weight: 600;
+}

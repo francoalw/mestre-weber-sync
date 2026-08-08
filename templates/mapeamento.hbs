@@ -1,0 +1,91 @@
+<form class="mws-config" autocomplete="off">
+    <p class="notes">Cole aqui a URL e o token gerados nas configurações da
+        campanha, dentro do mestre-weber ("Integração Foundry VTT").</p>
+
+    <div class="form-group">
+        <label for="mws-url">URL do mestre-weber</label>
+        <input type="text" id="mws-url" name="url" value="{{url}}" placeholder="http://mestre-weber.test" />
+    </div>
+
+    <div class="form-group">
+        <label for="mws-token">Token</label>
+        <input type="password" id="mws-token" name="token" value="{{token}}" />
+    </div>
+
+    {{#if erro}}
+    <p class="mws-erro">{{erro}}</p>
+    {{/if}}
+
+    <hr />
+
+    <div class="mws-atores-header">
+        <p class="notes">Mapeie cada personagem do Foundry pro personagem
+            correspondente no mestre-weber. Quem ficar sem par não entra na
+            sincronização.</p>
+        <button type="button" data-action="atualizar-lista">
+            <i class="fa-solid fa-rotate"></i> Atualizar lista
+        </button>
+    </div>
+
+    <table class="mws-atores">
+        <thead>
+            <tr>
+                <th>Personagem no Foundry</th>
+                <th>Personagem no mestre-weber</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each atores as |ator|}}
+            <tr>
+                <td>{{ator.nome}}</td>
+                <td>
+                    <select name="ator.{{ator.id}}">
+                        <option value="">— nenhum —</option>
+                        {{#each ../personagens as |personagem|}}
+                        <option value="{{personagem.id}}" {{#if (eq personagem.id ator.personagemId)}}selected{{/if}}>
+                            {{personagem.nome}}
+                        </option>
+                        {{/each}}
+                    </select>
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+
+    {{#if mostrarProgressoGrupo}}
+    <hr />
+
+    <p class="notes">Esta campanha usa nível/XP em grupo (não individual) —
+        escolha um personagem qualquer do Foundry pra representar o
+        progresso de todo o grupo.</p>
+
+    <table class="mws-atores">
+        <thead>
+            <tr>
+                <th>Grupo no mestre-weber</th>
+                <th>Personagem rastreado no Foundry</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{nomeGrupo}}</td>
+                <td>
+                    <select name="atorGrupo">
+                        <option value="">— nenhum —</option>
+                        {{#each atores as |ator|}}
+                        <option value="{{ator.id}}" {{#if (eq ator.id ../atorGrupoAtual)}}selected{{/if}}>
+                            {{ator.nome}}
+                        </option>
+                        {{/each}}
+                    </select>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    {{/if}}
+
+    <footer class="sheet-footer">
+        <button type="submit"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
+    </footer>
+</form>

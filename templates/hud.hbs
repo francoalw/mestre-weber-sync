@@ -1,0 +1,100 @@
+<form class="mws-hud" autocomplete="off">
+    <div class="mws-hud-toolbar">
+        <button type="button" data-action="alternar-gravacao" class="{{#if gravando}}mws-gravando{{/if}}">
+            {{#if gravando}}
+                <i class="fa-solid fa-pause"></i> Pausar
+            {{else}}
+                <i class="fa-solid fa-play"></i> Gravar
+            {{/if}}
+        </button>
+        <button type="button" data-action="nova-sessao">
+            <i class="fa-solid fa-eraser"></i> Nova sessão
+        </button>
+        <button type="button" data-action="sincronizar">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Sincronizar
+        </button>
+    </div>
+
+    {{#unless combatStatsAtivo}}
+    <p class="mws-aviso">O módulo "Combat Stats — PF2e" não está ativo — dano
+        causado/sofrido e cura causada não serão capturados, só ataques e
+        cura recebida.</p>
+    {{/unless}}
+
+    {{#if semDados}}
+    <p class="notes">Nenhum dado registrado ainda nesta sessão.</p>
+    {{else}}
+    <div class="mws-placar">
+        {{#each placar as |linha|}}
+        <div class="mws-linha">
+            <h3>{{linha.nome}}</h3>
+            <dl>
+                {{#each linha.campos as |campo|}}
+                <dt>{{campo.label}}</dt>
+                <dd>{{campo.valor}}</dd>
+                {{/each}}
+            </dl>
+        </div>
+        {{/each}}
+    </div>
+    {{/if}}
+
+    <hr />
+
+    <div class="mws-atores-header">
+        <h3>Nível e XP</h3>
+        <button type="button" data-action="sincronizar-progresso">
+            <i class="fa-solid fa-arrows-rotate"></i> Sincronizar agora
+        </button>
+    </div>
+    <p class="notes">
+        Sincronizado automaticamente sempre que o nível/XP de um personagem
+        mapeado muda no Foundry — o botão acima força uma sincronização
+        imediata, útil pra testar.
+        {{#if ultimaSincroniaProgresso}}Última sincronização: {{ultimaSincroniaProgresso}}.{{/if}}
+    </p>
+
+    {{#if grupo}}
+    <table class="mws-atores">
+        <thead>
+            <tr>
+                <th>Grupo (rastreado via {{grupo.nome}})</th>
+                <th>Nível</th>
+                <th>XP</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>—</td>
+                <td>{{grupo.nivel}}</td>
+                <td>{{grupo.xp}}</td>
+            </tr>
+        </tbody>
+    </table>
+    {{/if}}
+
+    {{#if semProgresso}}
+    {{#unless grupo}}
+    <p class="notes">Nenhum personagem mapeado.</p>
+    {{/unless}}
+    {{else}}
+    <table class="mws-atores">
+        <thead>
+            <tr>
+                <th>Personagem</th>
+                <th>Nível</th>
+                <th>XP</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each progresso as |linha|}}
+            <tr>
+                <td>{{linha.nome}}</td>
+                <td>{{linha.nivel}}</td>
+                <td>{{linha.xp}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+    {{/if}}
+</form>
