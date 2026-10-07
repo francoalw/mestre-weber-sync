@@ -1,0 +1,58 @@
+# Publica uma Release do módulo sempre que a versão do module.json muda no main
+# (ou manualmente, pela aba Actions). Se já existe release para a versão atual,
+# não faz nada — então é só subir a versão no module.json e dar push.
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths: [module.json]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ler versão
+        id: versao
+        run: echo "valor=$(jq -r .version module.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Verificar se a release já existe
+        id: existe
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "v${{ steps.versao.outputs.valor }}" > /dev/null 2>&1; then
+            echo "sim=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "sim=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Montar pacote
+        if: steps.existe.outputs.sim == 'false'
+        env:
+          VERSAO: ${{ steps.versao.outputs.valor }}
+        run: |
+          mkdir build
+          git archive HEAD | tar -x -C build
+          rm -rf build/.github build/.gitignore
+          # O module.json dentro do pacote aponta o download para o zip desta versão exata.
+          jq --arg d "https://github.com/${{ github.repository }}/releases/download/v$VERSAO/module.zip" \
+            '.download = $d' module.json > build/module.json
+          mkdir assets
+          (cd build && zip -r ../assets/module.zip .)
+          cp build/module.json assets/module.json
+
+      - name: Criar release
+        if: steps.existe.outputs.sim == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSAO: ${{ steps.versao.outputs.valor }}
+        run: |
+          gh release create "v$VERSAO" assets/module.zip assets/module.json \
+            --title "v$VERSAO" --target "$GITHUB_SHA" --generate-notes
