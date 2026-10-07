@@ -2,7 +2,7 @@
   "id": "mestre-weber-sync",
   "title": "Mestre Weber — Sync",
   "description": "Sincroniza estatísticas de combate (dano, cura, ataques) e nível/XP da campanha de Pathfinder 2e com o mestre-weber, nos dois sentidos — por personagem (campanhas com nível/XP individual) ou por um único Actor representando o grupo inteiro (campanhas com nível/XP em grupo). Usa o Combat Stats — PF2e como fonte de dano/cura, e adiciona captura de acertos/erros de ataque, cura recebida e nível/XP (sincronizado automaticamente nos dois sentidos, sempre que muda no Foundry ou no site). Também trava nível/XP na ficha pra que só o mestre possa alterá-los.",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "compatibility": {
     "minimum": "13",
     "verified": "14.365",

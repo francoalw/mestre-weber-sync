@@ -37,6 +37,14 @@ export class ProgressoSync {
     this._pullEmAndamento = false;
     this._ultimaSincronia = null;
     this._ultimoErro = null;
+    // Contador de alterações locais (feitas no Foundry) ainda não confirmadas
+    // pelo site. Um pull só é aplicado se nada mudou localmente desde que ele
+    // começou e não há push pendente/em andamento — senão o pull traria o
+    // valor ANTIGO do site e desfaria a edição recém-feita no Foundry (ex.:
+    // Mestre muda XP 476→496, o pull de 20s cai dentro dos 3s de debounce do
+    // push, reescreve 476 na ficha, e o push depois manda 476 pro site).
+    this._versaoLocal = 0;
+    this._pushEmAndamento = false;
   }
 
   init() {
@@ -49,13 +57,18 @@ export class ProgressoSync {
     // uma resincronização, que sempre lê o nível/XP atual do Actor (não o
     // diff) — o debounce evita virar uma enxurrada de requests quando o
     // Actor muda por outro motivo (HP, itens etc.) no meio da sessão.
-    Hooks.on("updateActor", (actor) => {
+    Hooks.on("updateActor", (actor, changes, options) => {
       if (!game.user.isGM) return;
       if (actor.type !== "character") return;
+      // Marcado por `_aplicarNoAtor` quando é o PRÓPRIO pull aplicando o
+      // valor que acabou de vir do site — não conta como alteração local
+      // nem reagenda um push devolvendo pro site o mesmo valor.
+      if (options?.mwsSkipPush) return;
 
       const relevante = Boolean(this._personagemDoAtor(actor.id)) || actor.id === this._atorGrupo();
       if (!relevante) return;
 
+      this._versaoLocal++;
       this._agendar();
     });
 
@@ -90,8 +103,15 @@ export class ProgressoSync {
    */
   async sincronizarAgora() {
     clearTimeout(this._timeout);
+    this._timeout = null;
 
-    const [personagens, grupo] = await Promise.all([this._sincronizarPersonagens(), this._sincronizarGrupo()]);
+    this._pushEmAndamento = true;
+    let personagens, grupo;
+    try {
+      [personagens, grupo] = await Promise.all([this._sincronizarPersonagens(), this._sincronizarGrupo()]);
+    } finally {
+      this._pushEmAndamento = false;
+    }
 
     this._atualizarHudAberto();
 
@@ -172,10 +192,20 @@ export class ProgressoSync {
     // do intervalo — sem isso, uma conexão ruim poderia ir empilhando
     // requests simultâneos em vez de simplesmente atrasar o próximo.
     if (this._pullEmAndamento) return;
+    // Push agendado ou em andamento = o site ainda não tem o valor atual do
+    // Foundry; o que viesse do pull agora seria velho.
+    if (this._timeout || this._pushEmAndamento) return;
+
     this._pullEmAndamento = true;
+    const versaoNoInicio = this._versaoLocal;
 
     try {
       const resultado = await buscarPersonagens();
+
+      // Algo mudou no Foundry enquanto o request estava no ar: a resposta
+      // reflete o site de antes dessa mudança. Descarta — o push dessa
+      // mudança já está agendado e o próximo pull confere de novo.
+      if (this._versaoLocal !== versaoNoInicio || this._timeout || this._pushEmAndamento) return;
 
       if (!resultado.ok) {
         console.warn(`Mestre Weber Sync | Falha ao puxar progresso do site: ${resultado.erro}`);
@@ -246,7 +276,9 @@ export class ProgressoSync {
 
     if (foundry.utils.isEmpty(atualizacoes)) return false;
 
-    actor.update(atualizacoes);
+    // `mwsSkipPush` avisa o hook `updateActor` acima que essa mudança já
+    // veio do site (ver comentário em `init()`).
+    actor.update(atualizacoes, { mwsSkipPush: true });
     return true;
   }
 
