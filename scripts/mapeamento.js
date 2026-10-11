@@ -15,7 +15,7 @@ export class MapeamentoApp extends FormApplication {
       template: "modules/mestre-weber-sync/templates/mapeamento.hbs",
       width: 480,
       height: "auto",
-      closeOnSubmit: false,
+      closeOnSubmit: true,
       submitOnChange: false,
     });
   }
@@ -60,7 +60,6 @@ export class MapeamentoApp extends FormApplication {
     await game.settings.set(MODULE_ID, "atorGrupo", dados.atorGrupo ?? "");
 
     ui.notifications.info("Mestre Weber Sync | Configuração salva.");
-    this.render();
   }
 
   activateListeners(html) {

@@ -42,9 +42,9 @@ function removerCampo(changes, caminho) {
  * inteira), a menos que não sobre mais nada legítimo pra salvar — assim uma
  * mudança legítima simultânea em outro campo continua passando.
  *
- * O módulo mestre-weber-sync (`progresso.js`) só LÊ nível/XP do Actor, nunca
- * escreve neles — essa proteção não interfere na sincronização automática
- * com o mestre-weber.
+ * O `progresso.js` deste módulo também ESCREVE nível/XP (pull do site), mas
+ * só roda no cliente do mestre — então essa proteção, que ignora o mestre,
+ * não interfere na sincronização automática com o mestre-weber.
  */
 export function registrarProtecaoNivelXp() {
   Hooks.on("preUpdateActor", (actor, changes) => {

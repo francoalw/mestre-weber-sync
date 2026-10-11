@@ -1,8 +1,8 @@
 {
   "id": "mestre-weber-sync",
-  "title": "Mestre Weber — Sync",
-  "description": "Sincroniza estatísticas de combate (dano, cura, ataques) e nível/XP da campanha de Pathfinder 2e com o mestre-weber, nos dois sentidos — por personagem (campanhas com nível/XP individual) ou por um único Actor representando o grupo inteiro (campanhas com nível/XP em grupo). Usa o Combat Stats — PF2e como fonte de dano/cura, e adiciona captura de acertos/erros de ataque, cura recebida e nível/XP (sincronizado automaticamente nos dois sentidos, sempre que muda no Foundry ou no site). Também trava nível/XP na ficha pra que só o mestre possa alterá-los.",
-  "version": "0.5.1",
+  "title": "Mestre Weber – Sync",
+  "description": "Integra o mundo de Pathfinder 2e / Starfinder 2e do Foundry com o mestre-weber: sincroniza nível/XP nos dois sentidos — por personagem (campanhas com nível/XP individual) ou por um único Actor representando o grupo inteiro (campanhas com nível/XP em grupo), automaticamente sempre que muda no Foundry ou no site — e trava nível/XP na ficha pra que só o mestre possa alterá-los. Importa a ficha montada no construtor do site pro ator do Foundry (com backup automático do ator antes, numa pasta \"backup DD/MM/AAAA\") e envia um ator do Foundry pro site, pra um personagem existente ou novo.",
+  "version": "0.18.0",
   "compatibility": {
     "minimum": "13",
     "verified": "14.365",
@@ -10,10 +10,8 @@
   },
   "relationships": {
     "systems": [
-      { "id": "pf2e", "type": "system", "compatibility": { "minimum": "8.3.0" } }
-    ],
-    "recommends": [
-      { "id": "combat-stats-pf2e", "type": "module", "compatibility": { "minimum": "2.0.0" }, "reason": "Fonte de dano causado/sofrido e cura causada — sem ele, só ataques e cura recebida são capturados." }
+      { "id": "pf2e", "type": "system", "compatibility": { "minimum": "8.3.0" } },
+      { "id": "sf2e", "type": "system" }
     ]
   },
   "authors": [{ "name": "Franco" }],
@@ -22,8 +20,8 @@
   "languages": [
     { "lang": "pt-BR", "name": "Português (Brasil)", "path": "lang/pt-BR.json" }
   ],
-  "license": "",
+  "license": "UNLICENSED",
   "url": "https://github.com/francoalw/mestre-weber-sync",
-  "manifest": "https://raw.githubusercontent.com/francoalw/mestre-weber-sync/main/module.json",
-  "download": "https://github.com/francoalw/mestre-weber-sync/archive/refs/heads/main.zip"
+  "manifest": "https://github.com/francoalw/mestre-weber-sync/releases/latest/download/module.json",
+  "download": "https://github.com/francoalw/mestre-weber-sync/releases/latest/download/module.zip"
 }

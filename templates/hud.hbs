@@ -1,46 +1,4 @@
 <form class="mws-hud" autocomplete="off">
-    <div class="mws-hud-toolbar">
-        <button type="button" data-action="alternar-gravacao" class="{{#if gravando}}mws-gravando{{/if}}">
-            {{#if gravando}}
-                <i class="fa-solid fa-pause"></i> Pausar
-            {{else}}
-                <i class="fa-solid fa-play"></i> Gravar
-            {{/if}}
-        </button>
-        <button type="button" data-action="nova-sessao">
-            <i class="fa-solid fa-eraser"></i> Nova sessão
-        </button>
-        <button type="button" data-action="sincronizar">
-            <i class="fa-solid fa-cloud-arrow-up"></i> Sincronizar
-        </button>
-    </div>
-
-    {{#unless combatStatsAtivo}}
-    <p class="mws-aviso">O módulo "Combat Stats — PF2e" não está ativo — dano
-        causado/sofrido e cura causada não serão capturados, só ataques e
-        cura recebida.</p>
-    {{/unless}}
-
-    {{#if semDados}}
-    <p class="notes">Nenhum dado registrado ainda nesta sessão.</p>
-    {{else}}
-    <div class="mws-placar">
-        {{#each placar as |linha|}}
-        <div class="mws-linha">
-            <h3>{{linha.nome}}</h3>
-            <dl>
-                {{#each linha.campos as |campo|}}
-                <dt>{{campo.label}}</dt>
-                <dd>{{campo.valor}}</dd>
-                {{/each}}
-            </dl>
-        </div>
-        {{/each}}
-    </div>
-    {{/if}}
-
-    <hr />
-
     <div class="mws-atores-header">
         <h3>Nível e XP</h3>
         <button type="button" data-action="sincronizar-progresso">

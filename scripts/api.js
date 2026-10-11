@@ -66,39 +66,6 @@ export async function buscarPersonagens() {
 }
 
 /**
- * @param {string} data formato YYYY-MM-DD
- * @param {Array<Record<string, number|string>>} estatisticas uma entrada por personagem_id
- * @returns {Promise<{ok: true, sessaoId:number, sessaoUrl:string, avisos:string[]} | {ok:false, erro:string}>}
- */
-export async function sincronizarEstatisticas(data, estatisticas) {
-  const { url, token } = credenciais();
-  if (!url || !token) return { ok: false, erro: "Configure a URL e o token do mestre-weber primeiro." };
-
-  try {
-    const resposta = await fetchComTimeout(`${url}/api/foundry/sessoes/sincronizar`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ data, estatisticas }),
-    });
-
-    if (!resposta.ok) {
-      const corpo = await resposta.json().catch(() => null);
-      const mensagem = corpo?.message ?? `mestre-weber respondeu ${resposta.status}.`;
-      return { ok: false, erro: mensagem };
-    }
-
-    const dados = await resposta.json();
-    return { ok: true, sessaoId: dados.sessao_id, sessaoUrl: dados.sessao_url, avisos: dados.avisos ?? [] };
-  } catch (erro) {
-    return { ok: false, erro: mensagemDeErro(erro, url) };
-  }
-}
-
-/**
  * @param {Array<{personagem_id:number, nivel?:number, xp?:number}>} progresso
  * @returns {Promise<{ok:true, avisos:string[]} | {ok:false, erro:string}>}
  */
@@ -158,6 +125,74 @@ export async function sincronizarProgressoGrupo(nivel, xp) {
 
     const dados = await resposta.json();
     return { ok: true, nivel: dados.nivel, xp: dados.xp };
+  } catch (erro) {
+    return { ok: false, erro: mensagemDeErro(erro, url) };
+  }
+}
+
+/**
+ * Ficha de Pathfinder 2e montada no construtor do site, no formato do
+ * importador (`importarFicha.js`). O site só tem essa exportação depois que
+ * a ficha é salva no construtor.
+ *
+ * @param {number} personagemId
+ * @returns {Promise<{ok:true, nome:string, atualizadaEm:string|null, ficha:object} | {ok:false, erro:string}>}
+ */
+export async function buscarFichaPf2e(personagemId) {
+  const { url, token } = credenciais();
+  if (!url || !token) return { ok: false, erro: "Configure a URL e o token do mestre-weber primeiro." };
+
+  try {
+    const resposta = await fetchComTimeout(`${url}/api/foundry/personagens/${personagemId}/ficha-pf2e`, {
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+    });
+
+    if (!resposta.ok) {
+      const corpo = await resposta.json().catch(() => null);
+      const mensagem = corpo?.message ?? `mestre-weber respondeu ${resposta.status}.`;
+      return { ok: false, erro: mensagem };
+    }
+
+    const dados = await resposta.json();
+    return { ok: true, nome: dados.nome, atualizadaEm: dados.atualizadaEm ?? null, ficha: dados.ficha };
+  } catch (erro) {
+    return { ok: false, erro: mensagemDeErro(erro, url) };
+  }
+}
+
+/**
+ * Manda um ator do Foundry pro site ("Enviar pro mestre-weber"), pra um
+ * personagem existente ou um novo (`personagemId` nulo, criado com `nome`).
+ * A ficha fica pendente no construtor do site até ser conferida e salva.
+ *
+ * @param {number|null} personagemId
+ * @param {string} nome
+ * @param {object} ator serializado por `enviarFicha.js`
+ * @returns {Promise<{ok:true, personagemId:number, nome:string, criado:boolean, url:string} | {ok:false, erro:string}>}
+ */
+export async function enviarFichaPf2e(personagemId, nome, ator) {
+  const { url, token } = credenciais();
+  if (!url || !token) return { ok: false, erro: "Configure a URL e o token do mestre-weber primeiro." };
+
+  try {
+    const resposta = await fetchComTimeout(`${url}/api/foundry/personagens/ficha-pf2e`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ personagem_id: personagemId, nome, ator }),
+    });
+
+    if (!resposta.ok) {
+      const corpo = await resposta.json().catch(() => null);
+      const mensagem = corpo?.message ?? `mestre-weber respondeu ${resposta.status}.`;
+      return { ok: false, erro: mensagem };
+    }
+
+    const dados = await resposta.json();
+    return { ok: true, personagemId: dados.personagemId, nome: dados.nome, criado: !!dados.criado, url: dados.url };
   } catch (erro) {
     return { ok: false, erro: mensagemDeErro(erro, url) };
   }

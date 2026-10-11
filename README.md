@@ -1,23 +1,18 @@
 # Mestre Weber — Sync
 
-Módulo do Foundry VTT (v14, sistema PF2e) que sincroniza estatísticas de
-combate e nível/XP dos personagens da campanha com o
-[mestre-weber](http://mestre-weber.test).
+Módulo do Foundry VTT (v14, sistemas PF2e e SF2e) que integra o mundo com o
+[mestre-weber](http://mestre-weber.test): nível/XP dos personagens e fichas
+(nos dois sentidos).
 
-## O que ele captura
+## O que ele sincroniza
 
-- **Dano causado/sofrido e cura causada**: lidos do módulo
-  [Combat Stats — PF2e](https://github.com/Smantella/combat-stats-pf2e) (não
-  incluso — instale-o separadamente pra esses três campos funcionarem).
-- **Ataques acertados/errados, d20 rolados, natural 1/20, acertos/erros
-  sofridos e cura recebida**: capturados por este módulo.
 - **Nível e XP**: sincronizado nos dois sentidos, sem precisar clicar em
   nada.
   - **Foundry → site**: lido de `system.details.level`/`system.details.xp`
     de cada Actor mapeado — assim que o nível ou o XP mudam no Foundry
     (level up, ajuste manual na ficha, etc.), o módulo espera alguns
     segundos (pra juntar mudanças que chegam em sequência) e sincroniza
-    sozinho. O botão **Sincronizar agora** no placar força isso na hora,
+    sozinho. O botão **Sincronizar agora** no painel do módulo força isso na hora,
     útil pra testar.
   - **Site → Foundry**: como o Foundry não tem como "receber" uma chamada
     de fora, o módulo busca o nível/XP atual no mestre-weber a cada ~20s e
@@ -36,6 +31,17 @@ combate e nível/XP dos personagens da campanha com o
   desse personagem sincroniza o nível/XP do grupo no mestre-weber, do
   mesmo jeito automático (sem clicar em nada).
 
+## Fichas
+
+- **Importar do mestre-weber** (botão direito no ator, só o Mestre): monta o
+  ator com a ficha salva no construtor do site. Antes de mexer no ator, uma
+  cópia dele vai pra pasta de atores **"backup DD/MM/AAAA"** do dia (só o
+  Mestre vê); se o backup falhar, a importação é cancelada.
+- **Enviar pro mestre-weber** (botão direito no ator, só o Mestre): manda o
+  ator pro site, pra um personagem existente ou um novo. A ficha fica
+  pendente no construtor do site até ser conferida e salva. Nada muda no
+  ator.
+
 ## Nível e XP travados pro jogador
 
 Ninguém além do mestre consegue alterar o nível ou o XP de um personagem
@@ -48,7 +54,6 @@ motivo. O mestre continua podendo alterar normalmente.
 1. Copie (ou crie um link simbólico para) a pasta `mestre-weber-sync` pra
    dentro de `Data/modules/` da sua instalação do Foundry.
 2. Ative o módulo no mundo (Configurações do Mundo → Gerenciar Módulos).
-3. Recomendado: instale e ative também o **Combat Stats — PF2e**.
 
 ## Configuração
 
@@ -64,32 +69,14 @@ motivo. O mestre continua podendo alterar normalmente.
    linha. Escolha ali qualquer personagem do Foundry pra ser o rastreado
    como nível/XP do grupo.
 
-## Uso durante a sessão
+## Painel
 
-1. Abra o placar pelo botão na barra de controles de cena (ícone de
-   antena/satélite).
-2. Clique em **Gravar** antes de começar a jogar — sem isso, ataques e cura
-   recebida não são contados (o Combat Stats — PF2e captura dano/cura
-   independente disso, sempre que houver um combate ativo).
-3. Ao final da sessão (ou quando quiser), clique em **Sincronizar** — isso
-   cria/atualiza a sessão de hoje no mestre-weber com os números atuais.
-   Pode clicar quantas vezes quiser, não duplica nada.
-4. Antes da próxima sessão, clique em **Nova sessão** pra zerar o registro
-   de ataques/cura recebida (o histórico de combates do Combat Stats — PF2e
-   anteriores a esse momento também deixa de entrar no placar).
+O painel de nível/XP abre pelo botão **Mestre Weber — Sync** (ícone de
+antena/satélite) nos controles de token. Outros módulos podem acrescentar
+conteúdo nele pelo hook `renderHudApp` (a janela tem id `mws-hud`).
 
-Nível e XP não dependem de nada disso — a sincronização (nos dois sentidos)
-acontece sozinha em segundo plano, gravando ou não a sessão.
+## Limitações conhecidas
 
-## Limitações conhecidas (v0.5.1, ainda não testado ao vivo)
-
-- O formato exato das flags `flags.pf2e.context`/`flags.pf2e.target` nas
-  mensagens de rolagem de ataque foi inferido a partir do código do Combat
-  Stats — PF2e (que usa esse mesmo formato pras mensagens de dano) — ainda
-  não foi confirmado contra uma rolagem de ataque real. Ative o console do
-  navegador (F12) durante uma sessão de teste e me mande qualquer erro.
-- Ataque de um PJ contra outro PJ (fogo amigo) só conta pro atacante, não
-  pro alvo — caso raro, não tratado nesta versão.
 - No site, a Campanha e a ficha do personagem buscam o nível/XP atualizado
   sozinhos a cada ~15-20s enquanto a aba estiver aberta (sem precisar de
   F5) — não é instantâneo, só quase.
