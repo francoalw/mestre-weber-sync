@@ -1,4 +1,5 @@
 import { MODULE_ID, buscarPersonagens } from "./api.js";
+import { agendarFicha } from "./fichaAuto.js";
 
 /**
  * Menu de configuração do módulo: URL + token do mestre-weber, e o
@@ -57,6 +58,8 @@ export class MapeamentoApp extends FormApplication {
       if (personagemId) mapa[actorId] = Number(personagemId);
     }
     await game.settings.set(MODULE_ID, "mapeamentoAtores", mapa);
+    // Quem acabou de ser mapeado já manda a ficha pro site
+    for (const actorId of Object.keys(mapa)) agendarFicha(game.actors.get(actorId));
     await game.settings.set(MODULE_ID, "atorGrupo", dados.atorGrupo ?? "");
 
     ui.notifications.info("Mestre Weber Sync | Configuração salva.");

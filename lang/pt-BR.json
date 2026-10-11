@@ -6,5 +6,7 @@
   "MWS.Menu.Mapeamento.Name": "Configuração e mapeamento",
   "MWS.Menu.Mapeamento.Label": "Configurar",
   "MWS.Menu.Mapeamento.Hint": "URL, token e o mapeamento de cada personagem do Foundry pro personagem correspondente no mestre-weber.",
-  "MWS.SceneControl.Title": "Mestre Weber — Sync"
+  "MWS.SceneControl.Title": "Mestre Weber — Sync",
+  "MWS.Settings.FichaAutomatica.Name": "Ficha automática no site",
+  "MWS.Settings.FichaAutomatica.Hint": "Sempre que um personagem mapeado muda no Foundry (nível, talentos, equipamento, PV, condições), a ficha dele é atualizada sozinha no mestre-weber, com os números calculados aqui."
 }

@@ -5,19 +5,24 @@ import { ProgressoSync } from "./progresso.js";
 import { HudApp } from "./hud.js";
 import { aplicarFicha, importarFicha, registrarBotaoImportar } from "./importarFicha.js";
 import { enviarFicha, serializarAtor, registrarBotaoEnviar } from "./enviarFicha.js";
+import { montarFicha, registrarFichaAutomatica } from "./fichaAuto.js";
 
 // Precisa rodar em TODOS os clientes (jogadores incluídos), não só no do
 // mestre — a checagem `game.user.isGM` acontece dentro do próprio hook.
 registrarProtecaoNivelXp();
 registrarBotaoImportar();
 registrarBotaoEnviar();
+registrarFichaAutomatica();
 
 Hooks.once("init", () => {
   const hidden = { scope: "world", config: false };
 
+  // URL e token ficam só na janela "Configurar" (MapeamentoApp), junto do
+  // mapeamento — `config: false` pra não aparecerem de novo, soltos (e com o
+  // token em texto aberto), na lista de configurações do módulo.
   game.settings.register(MODULE_ID, "mestreWeberUrl", {
     scope: "world",
-    config: true,
+    config: false,
     type: String,
     default: "http://mestre-weber.test",
     name: game.i18n.localize("MWS.Settings.Url.Name"),
@@ -27,7 +32,7 @@ Hooks.once("init", () => {
 
   game.settings.register(MODULE_ID, "mestreWeberToken", {
     scope: "world",
-    config: true,
+    config: false,
     type: String,
     default: "",
     name: game.i18n.localize("MWS.Settings.Token.Name"),
@@ -50,7 +55,7 @@ Hooks.once("init", () => {
   });
 
   // game.modules.get("mestre-weber-sync").api.importarFicha(actor)
-  game.modules.get(MODULE_ID).api = { importarFicha, aplicarFicha, enviarFicha, serializarAtor };
+  game.modules.get(MODULE_ID).api = { importarFicha, aplicarFicha, enviarFicha, serializarAtor, montarFicha };
 });
 
 Hooks.once("ready", () => {

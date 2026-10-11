@@ -33,6 +33,13 @@ Módulo do Foundry VTT (v14, sistemas PF2e e SF2e) que integra o mundo com o
 
 ## Fichas
 
+- **Ficha automática**: sempre que um personagem mapeado muda no Foundry
+  (nível, talentos, equipamento, PV, condições), a ficha dele vai sozinha
+  pro site uns segundos depois, com os números calculados pelo próprio
+  sistema (PV, CA, percepção, salvamentos, perícias, golpes, conjuração,
+  talentos, inventário). O site mostra essa ficha na aba do personagem e
+  atualiza sozinho. Só o Mestre envia, e só quando algo mudou. Dá pra
+  desligar em Configurações → **Ficha automática no site**.
 - **Importar do mestre-weber** (botão direito no ator, só o Mestre): monta o
   ator com a ficha salva no construtor do site. Antes de mexer no ator, uma
   cópia dele vai pra pasta de atores **"backup DD/MM/AAAA"** do dia (só o

@@ -1,4 +1,5 @@
 import { MODULE_ID, buscarPersonagens, enviarFichaPf2e } from "./api.js";
+import { agendarFicha } from "./fichaAuto.js";
 
 /**
  * "Enviar pro mestre-weber": o caminho inverso do "Importar do mestre-weber"
@@ -160,6 +161,7 @@ export async function enviarFicha(ator) {
   if (mapa[ator.id] !== resultado.personagemId) {
     await game.settings.set(MODULE_ID, "mapeamentoAtores", { ...mapa, [ator.id]: resultado.personagemId });
   }
+  agendarFicha(ator);
 
   ChatMessage.create({
     whisper: ChatMessage.getWhisperRecipients("GM"),

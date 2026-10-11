@@ -197,3 +197,37 @@ export async function enviarFichaPf2e(personagemId, nome, ator) {
     return { ok: false, erro: mensagemDeErro(erro, url) };
   }
 }
+
+/**
+ * Ficha do ator como está no Foundry (números já calculados pelo sistema),
+ * enviada sozinha sempre que o ator mapeado muda — ver `fichaAuto.js`.
+ *
+ * @param {number} personagemId
+ * @param {object} ficha
+ * @returns {Promise<{ok:true} | {ok:false, erro:string}>}
+ */
+export async function enviarFichaFoundry(personagemId, ficha) {
+  const { url, token } = credenciais();
+  if (!url || !token) return { ok: false, erro: "Configure a URL e o token do mestre-weber primeiro." };
+
+  try {
+    const resposta = await fetchComTimeout(`${url}/api/foundry/personagens/${personagemId}/ficha-foundry`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ficha }),
+    });
+
+    if (!resposta.ok) {
+      const corpo = await resposta.json().catch(() => null);
+      return { ok: false, erro: corpo?.message ?? `mestre-weber respondeu ${resposta.status}.` };
+    }
+
+    return { ok: true };
+  } catch (erro) {
+    return { ok: false, erro: mensagemDeErro(erro, url) };
+  }
+}
