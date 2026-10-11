@@ -156,7 +156,7 @@ export async function enviarFicha(ator) {
     return;
   }
 
-  // Liga o ator ao personagem (nível/XP, estatísticas e o "Importar")
+  // Liga o ator ao personagem (nível/XP e o "Importar")
   if (mapa[ator.id] !== resultado.personagemId) {
     await game.settings.set(MODULE_ID, "mapeamentoAtores", { ...mapa, [ator.id]: resultado.personagemId });
   }
