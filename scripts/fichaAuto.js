@@ -103,6 +103,54 @@ async function conjuracao(ator) {
   return entradas;
 }
 
+// Categorias que a ficha do Foundry sempre lista, mesmo destreinadas.
+const ATAQUES_BASE = ["unarmed", "simple", "martial", "advanced"];
+const DEFESAS_BASE = ["unarmored", "light", "medium", "heavy"];
+
+function nomeProficiencia(slug, p, categorias) {
+  if (p.label) return traduzir(p.label);
+  if (categorias?.[slug]) return traduzir(categorias[slug]);
+  const grupo = /^weapon-group-(.+)$/.exec(slug)?.[1];
+  if (grupo) return rotulo(cfg().weaponGroups, grupo);
+  const base = /^weapon-base-(.+)$/.exec(slug)?.[1];
+  if (base) return rotulo(cfg().baseWeaponTypes?.[base] ? cfg().baseWeaponTypes : cfg().baseShieldTypes, base);
+  return slug;
+}
+
+/** Proficiências de arma/armadura (com ordem: as de sempre primeiro, depois as extras). */
+function listaProficiencias(mapa, base, categorias) {
+  return Object.entries(mapa ?? {})
+    .filter(([slug, p]) => p && p.visible !== false && (base.includes(slug) || Number(p.rank ?? 0) > 0))
+    .map(([slug, p]) => ({ slug, nome: nomeProficiencia(slug, p, categorias), grau: Number(p.rank ?? 0) }))
+    .sort((a, b) => {
+      const ia = base.indexOf(a.slug), ib = base.indexOf(b.slug);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.nome.localeCompare(b.nome, "pt-BR");
+    });
+}
+
+function proficiencias(ator) {
+  const p = ator.system?.proficiencies;
+  if (!p) return null;
+  return {
+    armas: listaProficiencias(p.attacks, ATAQUES_BASE, cfg().weaponCategories),
+    armaduras: listaProficiencias(p.defenses, DEFESAS_BASE, cfg().armorCategories),
+    magia: p.spellcasting ? Number(p.spellcasting.rank ?? 0) : null,
+  };
+}
+
+/**
+ * Nome do item que concedeu o talento (Grant Item): uma característica de
+ * classe, outro talento, herança ou antecedente. Classe e ancestralidade
+ * ficam de fora — elas concedem as próprias características, e isso só
+ * repetiria o óbvio.
+ */
+function concedidoPor(ator, item) {
+  const id = item.flags?.pf2e?.grantedBy?.id;
+  const origem = id ? ator.items.get(id) : null;
+  if (!origem || ["class", "ancestry"].includes(origem.type)) return null;
+  return origem.name;
+}
+
 /** A ficha do ator no formato que o site mostra (FichaFoundry). */
 export async function montarFicha(ator) {
   const sistema = ator.system ?? {};
@@ -141,6 +189,7 @@ export async function montarFicha(ator) {
       ["fortitude", "reflex", "will"].map((s) => [s, estatistica(ator.saves?.[s])]).filter(([, v]) => v),
     ),
     pericias,
+    proficiencias: proficiencias(ator),
     deslocamentos: Object.entries(velocidades)
       .filter(([, v]) => v && Number(v.value) > 0)
       .map(([tipo, v]) => ({ tipo, valor: Number(v.value) })),
@@ -158,6 +207,7 @@ export async function montarFicha(ator) {
       origem: idDeOrigem(t),
       acoes: acoesDoItem(t),
       tracos: (t.system?.traits?.value ?? []).map((tr) => rotulo(cfg().featTraits, tr)),
+      concedidoPor: concedidoPor(ator, t),
     })),
     inventario: (ator.inventory?.contents ?? [])
       .filter((i) => i.type !== "treasure" || i.isEquipped)

@@ -2,7 +2,7 @@
   "id": "mestre-weber-sync",
   "title": "Mestre Weber – Sync",
   "description": "Integra o mundo de Pathfinder 2e / Starfinder 2e do Foundry com o mestre-weber: sincroniza nível/XP nos dois sentidos — por personagem (campanhas com nível/XP individual) ou por um único Actor representando o grupo inteiro (campanhas com nível/XP em grupo), automaticamente sempre que muda no Foundry ou no site — e trava nível/XP na ficha pra que só o mestre possa alterá-los. Importa a ficha montada no construtor do site pro ator do Foundry (com backup automático do ator antes, numa pasta \"backup DD/MM/AAAA\") e envia um ator do Foundry pro site, pra um personagem existente ou novo. A ficha de cada personagem mapeado também vai sozinha pro site sempre que muda no Foundry (nível, talentos, equipamento, PV, condições), com os números calculados pelo próprio sistema.",
-  "version": "0.19.0",
+  "version": "0.20.0",
   "compatibility": {
     "minimum": "13",
     "verified": "14.365",
