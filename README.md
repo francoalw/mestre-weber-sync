@@ -18,6 +18,10 @@ Módulo do Foundry VTT (v14, sistemas PF2e e SF2e) que integra o mundo com o
     de fora, o módulo busca o nível/XP atual no mestre-weber a cada ~20s e
     aplica no Actor correspondente, se o mestre tiver editado direto no
     site em vez do Foundry.
+  - **Ao ligar um ator, o Foundry manda**: um vínculo novo primeiro envia o
+    nível/XP do Foundry pro site, e só depois disso passa a receber o pull.
+    E o pull nunca baixa o nível de um ator — se o site estiver num nível
+    menor, a ficha do Foundry fica como está e o site é corrigido.
 
   No mestre-weber, esses valores só aparecem (na Campanha e na ficha do
   personagem) se a campanha tiver a opção **Nível e XP individuais** ligada

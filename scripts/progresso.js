@@ -3,6 +3,8 @@ import { HudApp } from "./hud.js";
 
 const S_MAPEAMENTO = "mapeamentoAtores";
 const S_ATOR_GRUPO = "atorGrupo";
+const S_CONFIRMADOS = "vinculosConfirmados";
+const CHAVE_GRUPO = "__grupo__";
 const DEBOUNCE_MS = 3000;
 const PULL_INTERVAL_MS = 20000;
 
@@ -30,6 +32,14 @@ const PULL_INTERVAL_MS = 20000;
  * As duas pontas só escrevem quando o valor realmente muda, então o
  * round-trip (Foundry muda → push → site já tinha esse valor → pull não
  * muda nada) se estabiliza sozinho, sem loop infinito.
+ *
+ * **O Foundry manda no vínculo novo.** Um ator recém-ligado a um personagem
+ * do site (ou escolhido como ator do grupo) nunca recebe o pull antes de o
+ * nível/XP dele ter ido pro site pelo menos uma vez (`vinculosConfirmados`).
+ * Sem isso, ligar um ator nível 5 a um personagem que no site ainda estava
+ * nível 1 fazia o pull de 20s rebaixar a ficha do Foundry pro nível 1.
+ * Pelo mesmo motivo, o pull nunca BAIXA o nível de um ator — rebaixar nível
+ * no PF2e apaga características de classe; isso só o mestre faz, na ficha.
  */
 export class ProgressoSync {
   constructor() {
@@ -74,6 +84,16 @@ export class ProgressoSync {
       this._agendar();
     });
 
+    // Vínculo salvo/trocado (janela Configurar, "Enviar pro mestre-weber",
+    // "Importar"): conta como mudança local, pra nenhum pull em andamento ser
+    // aplicado e o push do vínculo novo sair logo.
+    Hooks.on("updateSetting", (setting) => {
+      if (setting.key !== `${MODULE_ID}.${S_MAPEAMENTO}` && setting.key !== `${MODULE_ID}.${S_ATOR_GRUPO}`) return;
+
+      this._versaoLocal++;
+      this._agendar();
+    });
+
     this._puxarDoSite();
     this._pullInterval = setInterval(() => this._puxarDoSite(), PULL_INTERVAL_MS);
   }
@@ -85,6 +105,32 @@ export class ProgressoSync {
 
   _atorGrupo() {
     return game.settings.get(MODULE_ID, S_ATOR_GRUPO) || null;
+  }
+
+  _confirmados() {
+    return game.settings.get(MODULE_ID, S_CONFIRMADOS) ?? {};
+  }
+
+  /** Se o vínculo atual já mandou o nível/XP do Foundry pro site. */
+  _vinculoConfirmado(chave, valor) {
+    const confirmado = this._confirmados()[chave];
+    return confirmado !== undefined && String(confirmado) === String(valor);
+  }
+
+  _haVinculoPendente() {
+    const mapa = game.settings.get(MODULE_ID, S_MAPEAMENTO) ?? {};
+    const pendentePersonagem = Object.entries(mapa).some(
+      ([actorId, personagemId]) => game.actors.get(actorId) && !this._vinculoConfirmado(actorId, personagemId),
+    );
+    const atorGrupo = this._atorGrupo();
+    const pendenteGrupo = Boolean(atorGrupo && game.actors.get(atorGrupo) && !this._vinculoConfirmado(CHAVE_GRUPO, atorGrupo));
+
+    return pendentePersonagem || pendenteGrupo;
+  }
+
+  async _confirmar(novos) {
+    if (foundry.utils.isEmpty(novos)) return;
+    await game.settings.set(MODULE_ID, S_CONFIRMADOS, { ...this._confirmados(), ...novos });
   }
 
   _agendar() {
@@ -123,6 +169,7 @@ export class ProgressoSync {
   async _sincronizarPersonagens() {
     const mapa = game.settings.get(MODULE_ID, S_MAPEAMENTO) ?? {};
     const progresso = [];
+    const enviados = {};
 
     for (const [actorId, personagemId] of Object.entries(mapa)) {
       const actor = game.actors.get(actorId);
@@ -133,6 +180,7 @@ export class ProgressoSync {
       if (nivel === undefined && xp === undefined) continue;
 
       progresso.push({ personagem_id: Number(personagemId), nivel, xp });
+      enviados[actorId] = Number(personagemId);
     }
 
     if (progresso.length === 0) return null;
@@ -141,6 +189,7 @@ export class ProgressoSync {
     this._registrarResultado(resultado);
 
     if (resultado.ok) {
+      await this._confirmar(enviados);
       for (const aviso of resultado.avisos) ui.notifications.warn(`Mestre Weber Sync | ${aviso}`);
     }
 
@@ -160,6 +209,7 @@ export class ProgressoSync {
 
     const resultado = await sincronizarProgressoGrupo(nivel, xp);
     this._registrarResultado(resultado);
+    if (resultado.ok) await this._confirmar({ [CHAVE_GRUPO]: atorGrupoId });
 
     return resultado;
   }
@@ -202,6 +252,12 @@ export class ProgressoSync {
     const versaoNoInicio = this._versaoLocal;
 
     try {
+      // Vínculo novo (ou ainda não confirmado, ex.: logo depois de atualizar
+      // o módulo): o Foundry manda primeiro o nível/XP dele pro site. Os
+      // vínculos não confirmados ficam de fora do pull de qualquer jeito.
+      if (this._haVinculoPendente()) await this.sincronizarAgora();
+      if (this._versaoLocal !== versaoNoInicio || this._timeout || this._pushEmAndamento) return;
+
       const resultado = await buscarPersonagens();
 
       // Algo mudou no Foundry enquanto o request estava no ar: a resposta
@@ -238,6 +294,8 @@ export class ProgressoSync {
     const porId = new Map(personagens.map((p) => [p.id, p]));
 
     return Object.entries(mapa).map(([actorId, personagemId]) => {
+      if (!this._vinculoConfirmado(actorId, personagemId)) return false;
+
       const personagem = porId.get(Number(personagemId));
       if (!personagem) return false;
 
@@ -252,6 +310,7 @@ export class ProgressoSync {
 
     const atorGrupoId = this._atorGrupo();
     if (!atorGrupoId) return false;
+    if (!this._vinculoConfirmado(CHAVE_GRUPO, atorGrupoId)) return false;
 
     return this._aplicarNoAtor(atorGrupoId, campanha.nivel, campanha.xp);
   }
@@ -268,8 +327,19 @@ export class ProgressoSync {
     if (!actor) return false;
 
     const atualizacoes = {};
+    const nivelAtual = Number(actor.system?.details?.level?.value);
 
-    if (nivel !== undefined && nivel !== null && Number(nivel) !== Number(actor.system?.details?.level?.value)) {
+    // Site com nível MENOR que o Foundry: não rebaixa a ficha (nem mexe no
+    // XP, que é do nível do site). O próximo push corrige o site.
+    if (nivel !== undefined && nivel !== null && Number(nivel) < nivelAtual) {
+      console.warn(
+        `Mestre Weber Sync | ${actor.name}: site no nível ${nivel}, Foundry no ${nivelAtual} — ficha não rebaixada.`,
+      );
+      this._agendar();
+      return false;
+    }
+
+    if (nivel !== undefined && nivel !== null && Number(nivel) !== nivelAtual) {
       atualizacoes["system.details.level.value"] = nivel;
     }
     if (xp !== undefined && xp !== null && Number(xp) !== Number(actor.system?.details?.xp?.value)) {

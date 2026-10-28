@@ -44,6 +44,10 @@ Hooks.once("init", () => {
   // Actor único escolhido pelo mestre pra representar o nível/XP de todo o
   // grupo, usado só em campanhas que NÃO ligaram "Nível e XP individuais".
   game.settings.register(MODULE_ID, "atorGrupo", { ...hidden, type: String, default: "" });
+  // Vínculos ator ↔ site que já mandaram o nível/XP do Foundry pro site pelo
+  // menos uma vez. O pull (site → Foundry) só mexe num ator que está aqui —
+  // ver `ProgressoSync`.
+  game.settings.register(MODULE_ID, "vinculosConfirmados", { ...hidden, type: Object, default: {} });
 
   game.settings.registerMenu(MODULE_ID, "mapeamentoMenu", {
     name: game.i18n.localize("MWS.Menu.Mapeamento.Name"),
